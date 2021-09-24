@@ -1,0 +1,13 @@
+[package]
+name = "format-procmacro"
+version = "0.1.0"
+authors = ["Alex Kordys <akordys@web3tech.ru>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+itertools = "0.10"
+proc-macro2 = "1.0"
+quote = "1.0"
