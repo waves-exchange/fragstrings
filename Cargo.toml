@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 format-procmacro = { path = "./format-procmacro" }
+parse-procmacro = { path = "./parse-procmacro" }
 
 [workspace]
-members = ["format-procmacro"]
+members = ["format-procmacro", "parse-procmacro"]

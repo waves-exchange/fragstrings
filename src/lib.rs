@@ -10,5 +10,16 @@
 //! let result = frag_format!("%s%s%d", foo, "bar", 42);
 //! assert_eq!(result, "%s%s%d__foo__bar__42");
 //! ```
+//!
+//! # Parsing
+//!
+//! ```
+//! use fragstrings::frag_parse;
+//! let (foo, bar, baz) = frag_parse!("%s%s%d", "%s%s%d__foo__bar__42").unwrap();
+//! assert_eq!(foo, "foo");
+//! assert_eq!(bar, "bar");
+//! assert_eq!(baz, 42);
+//! ```
 
 pub use format_procmacro::frag_format;
+pub use parse_procmacro::frag_parse;
