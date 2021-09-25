@@ -21,5 +21,8 @@
 //! assert_eq!(baz, 42);
 //! ```
 
+#[cfg(feature = "format")]
 pub use format_procmacro::frag_format;
+
+#[cfg(feature = "parse")]
 pub use parse_procmacro::frag_parse;
