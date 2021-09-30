@@ -1,0 +1,11 @@
+[package]
+name = "fragstrings-utils"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+itertools = "0.10"
+proc-macro2 = "1.0"
+
+[dev-dependencies]
+quote = "1.0"
