@@ -31,6 +31,17 @@ use fragstrings_utils::{
     punct::parse_punctuated_args,
 };
 
+/// Procedural macro for formatting fragmented strings.
+///
+/// Can be used like this:
+/// ```
+/// # use format_procmacro::frag_format;
+/// let foo = "foo";
+/// let result = frag_format!("%s%s%d", foo, "bar", 42);
+/// assert_eq!(result, "%s%s%d__foo__bar__42");
+/// ```
+///
+/// The returned value is `String`.
 #[proc_macro]
 pub fn frag_format(args: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let args = args.into();

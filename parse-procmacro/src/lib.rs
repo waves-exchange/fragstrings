@@ -28,6 +28,19 @@ use fragstrings_utils::{
     punct::parse_punctuated_args,
 };
 
+/// Procedural macro for parsing fragmented strings.
+///
+/// Can be used like this:
+/// ```
+/// # use parse_procmacro::frag_parse;
+/// let (foo, bar, baz) = frag_parse!("%s%s%d", "%s%s%d__foo__bar__42").unwrap();
+/// assert_eq!(foo, "foo");
+/// assert_eq!(bar, "bar");
+/// assert_eq!(baz, 42);
+/// ```
+///
+/// The returned value is `Option<(tuple)>`, where tuple has items which corresponds
+/// to the format descriptor.
 #[proc_macro]
 pub fn frag_parse(args: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let args = args.into();
