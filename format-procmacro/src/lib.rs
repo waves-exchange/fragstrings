@@ -25,7 +25,7 @@ use std::iter;
 
 use itertools::Itertools;
 
-use fragstrings_utils::{
+use utils::{
     fmt_strings::{parse_format_string, FormatItem},
     literals::parse_string_literal,
     punct::parse_punctuated_args,
