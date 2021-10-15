@@ -22,7 +22,7 @@ use proc_macro2::{TokenStream, TokenTree};
 use quote::format_ident;
 use quote::quote;
 
-use fragstrings_utils::{
+use utils::{
     fmt_strings::{parse_format_string, FormatItem},
     literals::parse_string_literal,
     punct::parse_punctuated_args,

@@ -14,4 +14,4 @@ format = ["format-procmacro"]
 parse = ["parse-procmacro"]
 
 [workspace]
-members = ["format-procmacro", "parse-procmacro", "fragstrings-utils"]
+members = ["format-procmacro", "parse-procmacro", "utils"]
