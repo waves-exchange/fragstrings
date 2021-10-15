@@ -22,7 +22,7 @@ to the format descriptor.
 ## Adding dependency to your code
 Add the following to your `Cargo.toml`'s dependencies section:
 ```
-fragstrings = { git = "https://github.com/a-kordys/fragstrings" }
+fragstrings = { git = "https://github.com/a-kordys/fragstrings", tag = "v0.1.1" }
 ```
 
 ### Features
@@ -31,11 +31,11 @@ Both of them are active by default.
 To enable only specific parts, disable default features and opt-in accordingly.
 
 ```
-fragstrings = { git = "https://github.com/a-kordys/fragstrings", default-features = false, features = ["format"] }
+fragstrings = { git = "https://github.com/a-kordys/fragstrings", tag = "v0.1.1", default-features = false, features = ["format"] }
 ```
 
 ```
-fragstrings = { git = "https://github.com/a-kordys/fragstrings", default-features = false, features = ["parse"] }
+fragstrings = { git = "https://github.com/a-kordys/fragstrings", tag = "v0.1.1", default-features = false, features = ["parse"] }
 ```
 
 
@@ -58,6 +58,20 @@ Fragment 0 is a string `order`, fragment 1 is a string `height` and fragment 2 i
 
 * Empty strings are allowed.
 * Negative integers are allowed.
+
+
+### Special syntax extension for parsing fragmented strings
+For extensibility purposes, format specifier for the parse macro is allowed to end with a '*',
+which means that any unspecified fragments can appear in the value, which are silently ignored
+without any errors reported.
+
+Example:
+```rust
+    let (foo, bar) = frag_parse!("%s%s*", "%s%s%s__foo__bar__baz")?;
+```
+
+In this example the fragment "baz" is ignored because it is masked by an asterisk
+in the format specifier.
 
 
 ## Running tests

@@ -20,6 +20,16 @@
 //! assert_eq!(bar, "bar");
 //! assert_eq!(baz, 42);
 //! ```
+//!
+//! It is also allowed to ignore trailing extra fragments for the sake of extensibility,
+//! using format specifier with '*' in the end:
+//! ```
+//! use fragstrings::frag_parse;
+//! let (foo, bar) = frag_parse!("%s%s*", "%s%s%s__foo__bar__baz").unwrap();
+//! assert_eq!(foo, "foo");
+//! assert_eq!(bar, "bar");
+//! // Fragment "baz" is silently ignored here and does not raise any errors.
+//! ```
 
 #[cfg(feature = "format")]
 pub use format_procmacro::frag_format;

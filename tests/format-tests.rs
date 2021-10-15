@@ -10,6 +10,9 @@ fn test_frag_format() {
     // frag_format!(42); // Compile error
     // frag_format!(xxx); // Compile error
     // frag_format!("xxx"); // Compile error
+    // frag_format!("*"); // Compile error
+    // frag_format!("*%d", 42); // Compile error
+    // frag_format!("%d*", 42); // Compile error
 
     assert_eq!(frag_format!("%s", "test"), "%s__test");
     assert_eq!(frag_format!("%d", 42), "%d__42");

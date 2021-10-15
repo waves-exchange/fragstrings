@@ -95,14 +95,23 @@ pub mod fmt_strings {
 
     #[derive(Copy, Clone, PartialEq, Eq, Debug)]
     pub enum FormatItem {
+        Any,
         Str,
         Int,
     }
 
     pub fn parse_format_string(fmt: &str) -> Option<Vec<FormatItem>> {
-        let n = fmt.len();
-        if n == 0 || n % 2 != 0 {
+        if fmt.is_empty() {
             return None;
+        }
+        let n = fmt.len();
+        let mut ends_with_wildcard = false;
+        if n % 2 != 0 {
+            if fmt.ends_with('*') {
+                ends_with_wildcard = true;
+            } else {
+                return None;
+            }
         }
         let mut res = Vec::with_capacity(n / 2);
         for (ch1, ch2) in fmt.bytes().tuples() {
@@ -116,12 +125,18 @@ pub mod fmt_strings {
             };
             res.push(item);
         }
+        if ends_with_wildcard {
+            if res.is_empty() {
+                return None;
+            }
+            res.push(FormatItem::Any);
+        }
         Some(res)
     }
 
     #[test]
     fn test_parse_format_string() {
-        use FormatItem::{Int, Str};
+        use FormatItem::{Any, Int, Str};
 
         assert_eq!(parse_format_string(""), None);
 
@@ -142,5 +157,12 @@ pub mod fmt_strings {
         assert_eq!(parse_format_string("%s foo"), None);
         assert_eq!(parse_format_string("%s "), None);
         assert_eq!(parse_format_string(" %s"), None);
+
+        assert_eq!(parse_format_string("*"), None);
+        assert_eq!(parse_format_string("*%s"), None);
+        assert_eq!(parse_format_string("*%d"), None);
+        assert_eq!(parse_format_string("%s*"), Some(vec![Str, Any]));
+        assert_eq!(parse_format_string("%d*"), Some(vec![Int, Any]));
+        assert_eq!(parse_format_string("%s%d*"), Some(vec![Str, Int, Any]));
     }
 }

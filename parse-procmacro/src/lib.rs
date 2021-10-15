@@ -111,7 +111,15 @@ fn frag_parse_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
     let fmt_string =
         parse_string_literal(&fmt_string_literal).ok_or(CompileError::BadStringLiteral)?;
 
-    let fmt_items = parse_format_string(fmt_string).ok_or(CompileError::BadFormatString)?;
+    let mut fmt_items = parse_format_string(fmt_string).ok_or(CompileError::BadFormatString)?;
+
+    let mut ends_with_wildcard = false;
+    let mut fmt_string_len = fmt_string.len();
+    if fmt_items.ends_with(&[FormatItem::Any]) {
+        ends_with_wildcard = true;
+        fmt_items.pop();
+        fmt_string_len -= 1;
+    }
 
     let n = fmt_items.len();
 
@@ -147,23 +155,35 @@ fn frag_parse_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
                     };
                 }
             }
+            FormatItem::Any => unreachable!(),
         })
         .collect::<Vec<_>>();
+
+    let pattern_check = if ends_with_wildcard {
+        let prefix = &fmt_string[0..fmt_string_len];
+        quote! { pattern.len() >= #fmt_string_len && &pattern[0..#fmt_string_len] == #prefix }
+    } else {
+        quote! { pattern == #fmt_string }
+    };
 
     let res = quote! {
         {
             let input: &str = &(#formatted_value_expr);
             let mut fragments = input.split("__");
             let ok = if let Some(pattern) = fragments.next() {
-                pattern == #fmt_string
+                #pattern_check
             } else {
                 false
             };
             if ok {
                 let mut ok = true;
                 #( #var_decls )*
-                let no_more = fragments.next().is_none();
-                if ok && no_more {
+                let all_good = if #ends_with_wildcard {
+                    true
+                } else {
+                    fragments.next().is_none()
+                };
+                if ok && all_good {
                     Some( ( #( #vars ),* ) )
                 } else {
                     None
