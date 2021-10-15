@@ -103,6 +103,10 @@ fn frag_format_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
 
     let fmt_items = parse_format_string(fmt_string).ok_or(CompileError::BadFormatString)?;
 
+    if fmt_items.ends_with(&[FormatItem::Any]) {
+        return Err(CompileError::BadFormatString);
+    }
+
     let args = args.collect::<Vec<_>>();
 
     if fmt_items.len() != args.len() {
@@ -122,6 +126,7 @@ fn frag_format_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
                 quote! { let #var: &str = ::core::convert::AsRef::<str>::as_ref(&( #arg )); }
             }
             FormatItem::Int => quote! { let #var: i64 = { #arg } as i64; },
+            FormatItem::Any => unreachable!(),
         })
         .collect::<Vec<_>>();
 

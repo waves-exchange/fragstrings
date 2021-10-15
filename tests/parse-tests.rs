@@ -60,6 +60,27 @@ fn test_frag_parse() {
     assert!(frag_parse!("%d%s", "%d%s__42__foo__bar").is_none());
 }
 
+#[test]
+fn test_frag_parse_non_strict() {
+    let (frag1, frag2) = frag_parse!("%s%d", "%s%d__test__42").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, 42);
+
+    assert!(frag_parse!("%s%d", "%s%d%s__test__42__foo").is_none());
+
+    let (frag1, frag2) = frag_parse!("%s%d*", "%s%d__test__42").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, 42);
+
+    let (frag1, frag2) = frag_parse!("%s%d*", "%s%d%s__test__42__foo").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, 42);
+
+    let (frag1, frag2) = frag_parse!("%s%d*", "%s%d%s%s__test__42__foo__bar").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, 42);
+}
+
 fn value_str_fn() -> &'static str {
     "%s%s%s__foo__bar__baz"
 }
