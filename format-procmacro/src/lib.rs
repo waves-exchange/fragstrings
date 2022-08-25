@@ -98,8 +98,7 @@ fn frag_format_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
         }
     };
 
-    let fmt_string =
-        parse_string_literal(&fmt_string_literal).ok_or(CompileError::BadStringLiteral)?;
+    let fmt_string = parse_string_literal(&fmt_string_literal).ok_or(CompileError::BadStringLiteral)?;
 
     let fmt_items = parse_format_string(fmt_string).ok_or(CompileError::BadFormatString)?;
 

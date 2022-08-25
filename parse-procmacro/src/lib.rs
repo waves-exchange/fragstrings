@@ -108,8 +108,7 @@ fn frag_parse_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
         return Err(CompileError::TooManyArguments);
     }
 
-    let fmt_string =
-        parse_string_literal(&fmt_string_literal).ok_or(CompileError::BadStringLiteral)?;
+    let fmt_string = parse_string_literal(&fmt_string_literal).ok_or(CompileError::BadStringLiteral)?;
 
     let mut fmt_items = parse_format_string(fmt_string).ok_or(CompileError::BadFormatString)?;
 

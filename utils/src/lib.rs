@@ -32,10 +32,7 @@ pub mod punct {
 
         fn test(input: TokenStream, expected: Vec<&str>) {
             let parsed = parse_punctuated_args(input);
-            let result = parsed
-                .into_iter()
-                .map(|stream| stream.to_string())
-                .collect_vec();
+            let result = parsed.into_iter().map(|stream| stream.to_string()).collect_vec();
             assert_eq!(result, expected);
         }
 
