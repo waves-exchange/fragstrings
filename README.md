@@ -22,7 +22,7 @@ to the format descriptor.
 ## Adding dependency to your code
 Add the following to your `Cargo.toml`'s dependencies section:
 ```
-fragstrings = { git = "https://github.com/a-kordys/fragstrings", tag = "v0.1.1" }
+fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.1.1" }
 ```
 
 ### Features
@@ -31,11 +31,11 @@ Both of them are active by default.
 To enable only specific parts, disable default features and opt-in accordingly.
 
 ```
-fragstrings = { git = "https://github.com/a-kordys/fragstrings", tag = "v0.1.1", default-features = false, features = ["format"] }
+fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.1.1", default-features = false, features = ["format"] }
 ```
 
 ```
-fragstrings = { git = "https://github.com/a-kordys/fragstrings", tag = "v0.1.1", default-features = false, features = ["parse"] }
+fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.1.1", default-features = false, features = ["parse"] }
 ```
 
 
