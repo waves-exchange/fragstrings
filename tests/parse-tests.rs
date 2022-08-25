@@ -2,6 +2,8 @@ use parse_procmacro::frag_parse;
 
 #[test]
 fn test_frag_parse() {
+    // Expected compile errors
+
     // frag_parse!(); // Compile error
     // frag_parse!(""); // Compile error
     // frag_parse!("%s"); // Compile error
@@ -11,6 +13,22 @@ fn test_frag_parse() {
     // frag_parse!(42, s); // Compile error
     // frag_parse!(xxx, s); // Compile error
     // frag_parse!("xxx", s); // Compile error
+
+    // Functions returning fragstrings - for tests
+
+    fn value_str_fn() -> &'static str {
+        "%s%s%s__foo__bar__baz"
+    }
+
+    fn value_string_fn() -> String {
+        "%d%d%d__1__2__3".to_string()
+    }
+
+    fn other_string_fn() -> String {
+        "%s%d%s__foo__42__bar".to_string()
+    }
+
+    // Test cases
 
     let value = frag_parse!("%s", "%s__test").expect("failed to parse");
     assert_eq!(value, "test");
@@ -79,16 +97,4 @@ fn test_frag_parse_non_strict() {
     let (frag1, frag2) = frag_parse!("%s%d*", "%s%d%s%s__test__42__foo__bar").expect("failed to parse");
     assert_eq!(frag1, "test");
     assert_eq!(frag2, 42);
-}
-
-fn value_str_fn() -> &'static str {
-    "%s%s%s__foo__bar__baz"
-}
-
-fn value_string_fn() -> String {
-    "%d%d%d__1__2__3".to_string()
-}
-
-fn other_string_fn() -> String {
-    "%s%d%s__foo__42__bar".to_string()
 }
