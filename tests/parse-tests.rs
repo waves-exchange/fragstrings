@@ -76,6 +76,12 @@ fn test_frag_parse() {
     assert!(frag_parse!("%d%s", "%d%s__42").is_none());
     assert!(frag_parse!("%d%s", "%d%s__42__foo").is_some());
     assert!(frag_parse!("%d%s", "%d%s__42__foo__bar").is_none());
+
+    assert!(frag_parse!(r"%s", "%s__test").is_some());
+    assert!(frag_parse!(r#"%s"#, "%s__test").is_some());
+    assert!(frag_parse!(r##"%s"##, "%s__test").is_some());
+    assert!(frag_parse!(r###"%s"###, "%s__test").is_some());
+    assert!(frag_parse!(b"%s", "%s__test").is_some());
 }
 
 #[test]
