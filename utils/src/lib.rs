@@ -39,6 +39,7 @@ pub mod punct {
         test(quote! { foo, bar, baz }, vec!["foo", "bar", "baz"]);
         test(quote! { one, 2+2, two }, vec!["one", "2 + 2", "two"]);
         test(quote! { x, (1+2)*3, y }, vec!["x", "(1 + 2) * 3", "y"]);
+        test(quote! { x, (1, 2, 3), y }, vec!["x", "(1 , 2 , 3)", "y"]);
         test(quote! { a, x -> y, b }, vec!["a", "x -> y", "b"]);
     }
 }
