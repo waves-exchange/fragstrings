@@ -20,9 +20,9 @@ to the format descriptor.
 
 
 ## Adding dependency to your code
-Add the following to your `Cargo.toml`'s dependencies section:
+Add the following to your `Cargo.toml`'s `dependencies` section:
 ```
-fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.1.1" }
+fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.2.0" }
 ```
 
 ### Features
@@ -31,11 +31,11 @@ Both of them are active by default.
 To enable only specific parts, disable default features and opt-in accordingly.
 
 ```
-fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.1.1", default-features = false, features = ["format"] }
+fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.2.0", default-features = false, features = ["format"] }
 ```
 
 ```
-fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.1.1", default-features = false, features = ["parse"] }
+fragstrings = { git = "https://github.com/waves-exchange/fragstrings", tag = "v0.2.0", default-features = false, features = ["parse"] }
 ```
 
 
@@ -72,6 +72,26 @@ Example:
 
 In this example the fragment "baz" is ignored because it is masked by an asterisk
 in the format specifier.
+
+Another useful feature is to mark one or more items at the end as optional using '?'. Optional items
+are type-checked but can be omitted in the string being parsed, and expressed with an `Option<>` in
+the generated Rust code.
+
+Example:
+```rust
+    let (foo, bar) = frag_parse!("%s%s?", "%s__foo")?;
+    assert_eq!(foo, "foo");
+    assert_eq!(bar, None);
+
+    let (foo, bar) = frag_parse!("%s%s?", "%s%s__foo__bar")?;
+    assert_eq!(foo, "foo"); // `foo` is just `String`
+    assert_eq!(bar, Some("bar".to_string())); // `bar` is `Option<String>`
+```
+
+Optional items can only come in the end of the string, because if something is missing in the middle
+things gets complicated, and it is not always possible to resync.
+
+It is also permitted to mix optionals with asterisk, as in `frag_parse!("%s%d?*", ...)`.
 
 
 ## Running tests

@@ -23,7 +23,7 @@ use quote::format_ident;
 use quote::quote;
 
 use utils::{
-    fmt_strings::{parse_format_string, FormatItem},
+    fmt_strings::{parse_format_string_ex, FormatEnding, FormatItem, FormatItemOpt, FormatItemType, FormatString},
     literals::parse_string_literal,
     punct::parse_punctuated_args,
 };
@@ -110,15 +110,11 @@ fn frag_parse_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
 
     let fmt_string = parse_string_literal(&fmt_string_literal).ok_or(CompileError::BadStringLiteral)?;
 
-    let mut fmt_items = parse_format_string(fmt_string).ok_or(CompileError::BadFormatString)?;
+    let fmt_parsed = parse_format_string_ex(fmt_string).ok_or(CompileError::BadFormatString)?;
+    let FormatString(fmt_items, fmt_ending) = fmt_parsed;
 
-    let mut ends_with_wildcard = false;
-    let mut fmt_string_len = fmt_string.len();
-    if fmt_items.ends_with(&[FormatItem::Any]) {
-        ends_with_wildcard = true;
-        fmt_items.pop();
-        fmt_string_len -= 1;
-    }
+    let fmt_string = rebuild_format_string(&fmt_items);
+    let has_optionals = has_optional_items(&fmt_items);
 
     let n = fmt_items.len();
 
@@ -127,57 +123,87 @@ fn frag_parse_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
     let var_decls = vars
         .iter()
         .zip(fmt_items.into_iter())
-        .map(|(var, it)| match it {
-            FormatItem::Str => {
-                quote! {
-                    let #var: ::std::string::String = if let Some(value) = fragments.next() {
-                        value.to_owned()
-                    } else {
-                        ok = false;
-                        "".to_owned()
-                    };
-                }
-            }
-            FormatItem::Int => {
-                quote! {
-                    let #var: i64 = if let Some(value) = fragments.next() {
-                        match value.parse() {
-                            Ok(value) => value,
-                            Err(_) => {
+        .map(|(var, item)| {
+            let FormatItem(item_type, item_opt) = item;
+            match item_opt {
+                FormatItemOpt::Mandatory => match item_type {
+                    FormatItemType::Str => {
+                        quote! {
+                            let #var: ::std::string::String = if let Some(value) = fragments.next() {
+                                value.to_owned()
+                            } else {
+                                ok = false;
+                                "".to_owned()
+                            };
+                        }
+                    }
+                    FormatItemType::Int => {
+                        quote! {
+                            let #var: i64 = if let Some(value) = fragments.next() {
+                                match value.parse() {
+                                    Ok(value) => value,
+                                    Err(_) => {
+                                        ok = false;
+                                        0
+                                    }
+                                }
+                            } else {
                                 ok = false;
                                 0
-                            }
+                            };
                         }
-                    } else {
-                        ok = false;
-                        0
-                    };
-                }
+                    }
+                },
+                FormatItemOpt::Optional => match item_type {
+                    FormatItemType::Str => {
+                        quote! {
+                            let #var: ::std::option::Option<::std::string::String> = if let Some(value) = fragments.next() {
+                                Some(value.to_owned())
+                            } else {
+                                None
+                            };
+                        }
+                    }
+                    FormatItemType::Int => {
+                        quote! {
+                            let #var: ::std::option::Option<i64> = if let Some(value) = fragments.next() {
+                                match value.parse() {
+                                    Ok(value) => Some(value),
+                                    Err(_) => {
+                                        ok = false;
+                                        Some(0)
+                                    }
+                                }
+                            } else {
+                                None
+                            };
+                        }
+                    }
+                },
             }
-            FormatItem::Any => unreachable!(),
         })
         .collect::<Vec<_>>();
 
-    let pattern_check = if ends_with_wildcard {
-        let prefix = &fmt_string[0..fmt_string_len];
-        quote! { pattern.len() >= #fmt_string_len && &pattern[0..#fmt_string_len] == #prefix }
-    } else {
-        quote! { pattern == #fmt_string }
-    };
+    let open_ending = fmt_ending == FormatEnding::Open;
 
     let res = quote! {
         {
             let input: &str = &(#formatted_value_expr);
             let mut fragments = input.split("__");
             let ok = if let Some(pattern) = fragments.next() {
-                #pattern_check
+                //TODO FIXME: this is a known bug, need to perform more more elaborate checks
+                if #open_ending || #has_optionals {
+                    pattern.starts_with(#fmt_string)
+                } else {
+                    pattern == #fmt_string
+                }
             } else {
                 false
             };
             if ok {
                 let mut ok = true;
                 #( #var_decls )*
-                let all_good = if #ends_with_wildcard {
+                let all_good = if #open_ending {
                     true
                 } else {
                     fragments.next().is_none()
@@ -194,4 +220,19 @@ fn frag_parse_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
     };
 
     Ok(res)
+}
+
+fn has_optional_items(items: &[FormatItem]) -> bool {
+    items.iter().any(|&FormatItem(_ty, op)| op == FormatItemOpt::Optional)
+}
+
+fn rebuild_format_string(items: &[FormatItem]) -> String {
+    items
+        .iter()
+        .filter(|&&FormatItem(_ty, op)| op == FormatItemOpt::Mandatory)
+        .map(|&FormatItem(ty, _op)| match ty {
+            FormatItemType::Str => "%s",
+            FormatItemType::Int => "%d",
+        })
+        .collect()
 }

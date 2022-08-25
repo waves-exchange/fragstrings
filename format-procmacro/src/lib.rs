@@ -26,7 +26,7 @@ use std::iter;
 use itertools::Itertools;
 
 use utils::{
-    fmt_strings::{parse_format_string, FormatItem},
+    fmt_strings::{parse_format_string, FormatItemType},
     literals::parse_string_literal,
     punct::parse_punctuated_args,
 };
@@ -102,10 +102,6 @@ fn frag_format_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
 
     let fmt_items = parse_format_string(fmt_string).ok_or(CompileError::BadFormatString)?;
 
-    if fmt_items.ends_with(&[FormatItem::Any]) {
-        return Err(CompileError::BadFormatString);
-    }
-
     let args = args.collect::<Vec<_>>();
 
     if fmt_items.len() != args.len() {
@@ -121,11 +117,10 @@ fn frag_format_impl(args: TokenStream) -> Result<TokenStream, CompileError> {
         .zip(fmt_items.into_iter())
         .zip(args.into_iter())
         .map(|((var, it), arg)| match it {
-            FormatItem::Str => {
+            FormatItemType::Str => {
                 quote! { let #var: &str = ::core::convert::AsRef::<str>::as_ref(&( #arg )); }
             }
-            FormatItem::Int => quote! { let #var: i64 = { #arg } as i64; },
-            FormatItem::Any => unreachable!(),
+            FormatItemType::Int => quote! { let #var: i64 = { #arg } as i64; },
         })
         .collect::<Vec<_>>();
 

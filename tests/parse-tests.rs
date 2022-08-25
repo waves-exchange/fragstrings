@@ -86,21 +86,76 @@ fn test_frag_parse() {
 
 #[test]
 fn test_frag_parse_non_strict() {
+    // OK: usual parsing
     let (frag1, frag2) = frag_parse!("%s%d", "%s%d__test__42").expect("failed to parse");
     assert_eq!(frag1, "test");
     assert_eq!(frag2, 42);
 
+    // Bad: extra parameters beyond described, no asterisk
     assert!(frag_parse!("%s%d", "%s%d%s__test__42__foo").is_none());
 
+    // OK: asterisk + no extra parameters
     let (frag1, frag2) = frag_parse!("%s%d*", "%s%d__test__42").expect("failed to parse");
     assert_eq!(frag1, "test");
     assert_eq!(frag2, 42);
 
+    // OK: asterisk + extra parameter
     let (frag1, frag2) = frag_parse!("%s%d*", "%s%d%s__test__42__foo").expect("failed to parse");
     assert_eq!(frag1, "test");
     assert_eq!(frag2, 42);
 
+    // OK: asterisk + two extra parameters
     let (frag1, frag2) = frag_parse!("%s%d*", "%s%d%s%s__test__42__foo__bar").expect("failed to parse");
     assert_eq!(frag1, "test");
     assert_eq!(frag2, 42);
+}
+
+#[test]
+fn test_frag_parse_optional() {
+    // OK: Optional parameter present
+    let (frag1, frag2) = frag_parse!("%s%d?", "%s%d__test__42").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, Some(42));
+
+    // OK: Optional parameter absent
+    let (frag1, frag2) = frag_parse!("%s%d?", "%s__test").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, None);
+
+    // Bad: Parameter is described but missing, this is NOT how optional works
+    //assert!(frag_parse!("%s%d?", "%s%d__test").is_none()); //TODO FIXME This is a known bug
+
+    // Bad: There must be at least one mandatory item -- this is checked at compile time
+    // assert!(frag_parse!("%s?", "%s__test").is_none()); // Compile error -- expected
+    // assert!(frag_parse!("%s?%d?", "%s%d__test__42").is_none()); // Compile error -- expected
+
+    // OK: Two optional parameters, one absent
+    let (frag1, frag2, frag3) = frag_parse!("%s%d?%s?", "%s%d__test__42").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, Some(42));
+    assert_eq!(frag3, None);
+
+    // OK: Two optional parameters, both present
+    let (frag1, frag2, frag3) = frag_parse!("%s%d?%s?", "%s%d%s__test__42__foo").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, Some(42));
+    assert_eq!(frag3, Some("foo".into()));
+
+    // Bad: extra parameter beyond optional, no asterisk
+    assert!(frag_parse!("%s%d?", "%s%d%s__test__42__foo").is_none());
+
+    // OK: Optional parameter + asterisk without extra parameters
+    let (frag1, frag2) = frag_parse!("%s%d?*", "%s%d__test__42").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, Some(42));
+
+    // OK: Optional parameter + asterisk with extra unused parameter
+    let (frag1, frag2) = frag_parse!("%s%d?*", "%s%d%s__test__42__foo").expect("failed to parse");
+    assert_eq!(frag1, "test");
+    assert_eq!(frag2, Some(42));
+
+    //TODO FIXME This is a known bug - parameter type mismatch must not be accepted
+    assert!(frag_parse!("%s%d", "%s%s__test__42").is_none());
+    //assert!(frag_parse!("%s%d?", "%s%s__test__42").is_none());
+    //assert!(frag_parse!("%s%d?*", "%s%s__test__42").is_none());
 }
